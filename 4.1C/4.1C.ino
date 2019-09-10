@@ -38,7 +38,7 @@ void formatSoilMoistureReading(float data, String result, String warning) {
 }
 
 String CHECK_FOR_WARNINGS(float data) {
-  if(data >= 300) {
+  if(data >= 50) {
     return " : HIGH MOISTURE. Please check.... ";
   } if(data <= 50) {
     return " : EXTREMELY LOW MOISTURE. Please check....";
