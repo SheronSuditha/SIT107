@@ -1,10 +1,26 @@
+#include <SPI.h>
+#include <SD.h>
+#include "RTClib.h"
+RTC_DS1307 rtc;
+const int chipSelect = 4;
+
 #define sensor A0
 #define LED 13
 float reading = 0;
 String ledlock;
+
 void setup() {
+  Serial.print("Initializing SD card...");
   pinMode(LED, OUTPUT);
   Serial.begin(9600);
+  rtc.adjust(DateTime(F(__DATE__), F(__TIME__)));
+
+  if (!SD.begin(chipSelect)) {
+    Serial.println("Card failed, or not present");
+    // don't do anything more:
+    while (1);
+  }
+  Serial.println("card initialized.");
 }
 
 void loop() {
@@ -29,12 +45,25 @@ String checkIfHighOrLow(int reading) {
 }
 
 void formatSoilMoistureReading(float data, String result, String warning) {
-  LED_CONTROLLER(result);
-  Serial.print("Soil Moisture reading : ");
-  Serial.print(data);
-  Serial.print("   Current status   " + result + warning);
-  Serial.println();
-  delay(500);
+  DateTime now = rtc.now();
+  String datastring = "";
+  File dataFile = SD.open("datalog.txt", FILE_WRITE);
+   if (dataFile) {
+    datastring += now.unixtime() + String(data) + "," + result;
+    dataFile.println();
+    dataFile.close();
+    LED_CONTROLLER(result);
+    Serial.print("Soil Moisture reading : ");
+    Serial.print(data);
+    Serial.print("   Current status   " + result + warning);
+    Serial.println();
+    delay(500);
+    Serial.println(dataString);
+  } else {
+    Serial.println("error opening datalog.txt");
+  }
+
+  
 }
 
 String CHECK_FOR_WARNINGS(float data) {
